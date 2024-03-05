@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException, Response
 import csv
 import requests
-from io import StringIO
-import uvicorn
+import pandas as pd
+from datetime import datetime
 
 app = FastAPI()
 
@@ -16,20 +16,15 @@ def get_vehicle_info(access_token):
     
     return vehicle_response.json()
 
-#return api data to csv file and downloads it
-def convert_to_csv(vehicle_info):
-    csv_data = StringIO()
-    csv_writer = csv.writer(csv_data)
-    
-    csv_writer.writerow(vehicle_info[0].keys())
-    for vehicle in vehicle_info:
-        csv_writer.writerow(vehicle.values())
-    
+def convert_to_excel(vehicle_info):
+    df = pd.DataFrame(vehicle_info)
+    current_date_iso_formatted = datetime.now().strftime("%Y-%m-%d")
+    filename = f'vehicles_{current_date_iso_formatted}.xlsx'
+    df.to_excel(filename, index=False)
+    return filename
 
-    return csv_data.getvalue()
-
-@app.get("/vehicle_info/csv/")
-async def get_vehicle_info_csv():
+@app.get("/vehicle_info/")
+async def get_vehicle_info_data():
     url = "https://api.baubuddy.de/index.php/login"
     payload = {
         "username": "365",
@@ -47,14 +42,24 @@ async def get_vehicle_info_csv():
     access_token = response.json().get("oauth", {}).get("access_token")
     
     vehicle_info = get_vehicle_info(access_token)
-    csv_data = convert_to_csv(vehicle_info)
+    excel_file = convert_to_excel(vehicle_info)
     
-    # Return the CSV file as a downloadable attachment
-    return Response(content=csv_data, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=vehicle_info.csv"})
+    try:
+        with open(excel_file, 'r', encoding='utf-8') as file:
+            file_content = file.read()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read Excel file: {str(e)}")
+    #Failed to read Excel file: 'utf-8' codec can't decode byte 0xf8 in position 14: invalid start byte"
+    return {
+        "excel_file": Response(content=file_content, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers={"Content-Disposition": f"attachment; filename={excel_file}"}),
+        "json_data": vehicle_info
+    }
 
 if __name__ == "__main__":
-    
+    import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
+
+
 
 ######TO GET TOKEN 
 # url = "https://api.baubuddy.de/index.php/login"

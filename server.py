@@ -71,10 +71,16 @@ async def get_vehicle_info_data(colored: bool = Query(True, description="Flag to
                 for label_id in label_ids:
                     color_code = resolve_color_code(label_id)
                     vehicle["labelColors"].append(color_code)
-    
+
+
+    # Filter out any resources that do not have a value set for hu field
+    #filtered_vehicle_info = [vehicle for vehicle in vehicle_info if vehicle.get("hu") is None]
+                    
+
     # return data in JSON format
     return {
         "original_data2": vehicle_info,
+        #"filtered-data":filtered_vehicle_info
     }
 
 if __name__ == "__main__":

@@ -1,3 +1,31 @@
+# Usage
+Clone repository:
+```bash
+$ git clone git@github.com:leylamatar/pythonTask.git
+````
+
+To run the server, execute the following command:
+```bash
+$ python server.py
+````
+In the client script, you can specify an input parameter `-k/--keys` , `-c/--colored`
+and select a different CSV file (default is `vehicles.csv`). To create an Excel file, run:
+```bash
+$ python client.py
+````
+
+## Project Description
+
+This project performs the following tasks:
+
+- Sends requests to the API and obtains authorization to receive the token.
+- Accesses resources in the API and returns the data structure in JSON format.
+- Implements the POST method to transmit a CSV file to the API, handles the response, and generates an Excel file while considering the input parameters.
+- Filters out any resources that do not have a value set for the "hu" field.
+- Columns always contain `rnr` field
+The generated Excel file is named `vehicles_{current_date_iso_formatted}.xlsx`.
+
+---
 Hello dear python dev!
 
 This repository is supposed to act as a playground for your submission.
